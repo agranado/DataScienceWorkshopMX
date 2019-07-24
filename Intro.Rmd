@@ -83,14 +83,18 @@ So, it seems that most men died ... and most women survived. But is not fair to 
 
 ```{r stackedBar2, echo=T}
 
-ggplot(data=titanic,aes(x=Sex,fill=Survived))+geom_bar(position="fill") + ylab("Frequency")
+ggplot(data=titanic,aes(x=Sex,fill=Survived)) +
+    geom_bar(position="fill") + 
+      ylab("Frequency")
 
 ```
 
 Now things are more evident. Right? Let's check out survival rate vs ticket class. Do rich people survive more than poor people?
 
 ```{r stackedBar3, echo=T}
-ggplot(data = titanic,aes(x=Pclass,fill=Survived))+geom_bar(position="fill")+ylab("Frequency")
+ggplot(data = titanic,aes(x=Pclass,fill=Survived))+
+    geom_bar(position="fill")+
+      ylab("Frequency")
 
 ```
 
@@ -140,7 +144,8 @@ titanic %>% filter(Sex=="male") %>% arrange(desc(Age)) %>% select(Age,Name) %>% 
 
 #looks good? Save it in a new data.frame
 
-age_name_sorted <- titanic %>% filter(Sex=="male") %>% arrange(desc(Age)) %>% select(Age,Name) 
+age_name_sorted <- titanic %>% filter(Sex=="male") %>% 
+                    arrange(desc(Age)) %>% select(Age,Name) 
 ```
 
 
@@ -164,7 +169,9 @@ Finally, can you understand what this pipeline is doing?
 
 ```{r dplyr4, echo=T}
 
-titanic %>%  mutate(Age_Bracket = ifelse(Age < 18, 'Minor','Major')) %>%  group_by(Survived,Age_Bracket) %>%  summarise(pnt = n())
+titanic %>%  mutate(Age_Bracket = ifelse(Age < 18, 'Minor','Major')) %>%
+  group_by(Survived,Age_Bracket) %>%  
+  summarise(pnt = n())
 
 ```
 

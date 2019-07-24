@@ -7,14 +7,14 @@
     "folds" : "",
     "hash" : "0",
     "id" : "F2E35B",
-    "lastKnownWriteTime" : 1564005217,
-    "last_content_update" : 1564005217801,
+    "lastKnownWriteTime" : 1564005502,
+    "last_content_update" : 1564005502181,
     "path" : "~/DataScienceMX/Intro.Rmd",
     "project_path" : "Intro.Rmd",
     "properties" : {
-        "cursorPosition" : "173,0",
+        "cursorPosition" : "85,46",
         "docOutlineVisible" : "0",
-        "scrollLine" : "171",
+        "scrollLine" : "78",
         "tempName" : "Untitled1"
     },
     "relative_order" : 1,
