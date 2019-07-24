@@ -20,7 +20,3 @@ navbar:
           href: metadata.html
     - icon: fab fa-github
       href: https://github.com/rstudio/distill
-output:
-  html_document:
-    highlight: pygments
-    css: style.css
