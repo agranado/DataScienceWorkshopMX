@@ -3,18 +3,16 @@ output_dir: "."
 title: "Distill for R Markdown"
 navbar:
   right:
+    - text: "CdC2019"
+      href: index.html
     - text: "Projects"
       href: index.html
     - text: "Workshop"
-      href: Intro.html
-    - text: "Publications"
-      href: citations.html
-    - text: "Publish"
       menu:
-        - text: "Publishing Articles"
-          href: publish_article.html
-        - text: "Publishing a Website"
-          href: publish_website.html
+        - text: "Day 2"
+          href: Intro.html
+        - text: "Day 3"
+          href: RNA.html
         - text: "---"
         - text: "Article Metadata"
           href: metadata.html
