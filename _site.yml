@@ -12,7 +12,7 @@ navbar:
         - text: "Day 2"
           href: Intro.html
         - text: "Day 3"
-          href: RNA.html
+          href: scRNAseq.html
         - text: "---"
         - text: "Article Metadata"
           href: metadata.html
