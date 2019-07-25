@@ -32,10 +32,9 @@ library(readr)
 library(here)
 ```
 
-## Including Plots
+## Loading Data
 
-You can also embed plots, for example:
-
+We can read the data using the function `read.csv`
 ```{r pressure, echo=FALSE}
 plot(pressure)
 ```

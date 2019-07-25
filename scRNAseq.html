@@ -12,7 +12,7 @@
 <meta name="author" content="Alejandro Granados" />
 
 
-<title>scRNA_analysis</title>
+<title>A pipeline to analyse single-cell RNA sequencing data</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -301,14 +301,14 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="Intro.html">Day 2</a>
+      <a href="Intro.html">Day 2: Intro</a>
     </li>
     <li>
-      <a href="scRNAseq.html">Day 3</a>
+      <a href="scRNAseq.html">Day 3: scRNA seq</a>
     </li>
     <li class="divider"></li>
     <li>
-      <a href="metadata.html">Article Metadata</a>
+      <a href="metadata.html">Additional Material</a>
     </li>
   </ul>
 </li>
@@ -327,7 +327,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">scRNA_analysis</h1>
+<h1 class="title toc-ignore">A pipeline to analyse single-cell RNA sequencing data</h1>
 <h4 class="author">Alejandro Granados</h4>
 <h4 class="date">24/07/2019</h4>
 
@@ -340,19 +340,27 @@ $(document).ready(function () {
 <p>The amount of genes in a given cell (~20,000 for mouse) times the number of cells means that we are dealing with really large matrices. One challenge, however, is that until today we can not read ALL the RNA from a single cell. In the processes of sequencing, most of the RNA is lost! This <code>dropout</code> problem imposes serious challenges for data analysis.</p>
 <p>Here, we will go through a standar pipeline to analyse scRNA-seq data from a cell atlas: the Tabula Muris <a href="https://tabula-muris.ds.czbiohub.org/" class="uri">https://tabula-muris.ds.czbiohub.org/</a>. In a cell atlas, researchers try to sequence the whole organisms with single cell resolution. As you can imagine, this is a huge amount of data. For the purpose of this tutorial, we will focus on a single tissue.</p>
 <p>We will use the specialized library <code>Seurat</code> which has been developed by Rahul Sajita and co-workers <a href="https://satijalab.org/seurat/" class="uri">https://satijalab.org/seurat/</a></p>
-<pre class="r"><code>summary(cars)</code></pre>
-<pre><code>##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00</code></pre>
+<p>Let’s start by downloading the dataset from here: <a href="https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687" class="uri">https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687</a></p>
+<pre class="r"><code># make sure to instal the libraries if you haven&#39;t
+library(Seurat)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(Matrix)
+library(stringr)
+library(readr)
+library(here)</code></pre>
+<pre><code>## here() starts at /Users/alejandrog/DataScienceMX</code></pre>
 </div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
-<p><img src="scRNAseq_files/figure-html/pressure-1.png" width="672" /></p>
+<div id="loading-data" class="section level2">
+<h2>Loading Data</h2>
+<p>We can read the data using the function <code>read.csv</code> <img src="scRNAseq_files/figure-html/pressure-1.png" width="672" /></p>
 <p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
 </div>
 

@@ -9,12 +9,12 @@ navbar:
       href: index.html
     - text: "Workshop"
       menu:
-        - text: "Day 2"
+        - text: "Day 2: Intro"
           href: Intro.html
-        - text: "Day 3"
+        - text: "Day 3: scRNA seq"
           href: scRNAseq.html
         - text: "---"
-        - text: "Article Metadata"
+        - text: "Additional Material"
           href: metadata.html
     - icon: fab fa-github
       href: https://github.com/rstudio/distill
