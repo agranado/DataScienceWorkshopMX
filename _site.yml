@@ -1,4 +1,4 @@
-name: "distill"
+name: "CdC2019"
 output_dir: "."
 title: "Distill for R Markdown"
 navbar:

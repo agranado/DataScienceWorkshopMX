@@ -1,5 +1,5 @@
 ---
-title: "scRNA_analysis"
+title: "A pipeline to analyse single-cell RNA sequencing data"
 author: "Alejandro Granados"
 date: "24/07/2019"
 output: html_document
@@ -9,14 +9,27 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Single cell RNA seq
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Single cell examines the sequence information of RNA inside individual cells. By amplifying the signal from RNA inside the cell and converting the RNA into DNA, we can use sequencing methods to recover the information of which RNAs were present in a given cell. Moreover, different technologies allow to sequence multiple cells in parallel. For example, the 10x Genomics platform enables up to 10,000 cells per sample! 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+The amount of genes in a given cell (~20,000 for mouse) times the number of cells means that we are dealing with really large matrices. One challenge, however, is that until today we can not read ALL the RNA from a single cell. In the processes of sequencing, most of the RNA is lost! This `dropout` problem imposes serious challenges for data analysis. 
+
+Here, we will go through a standar pipeline to analyse scRNA-seq data from a cell atlas: the Tabula Muris https://tabula-muris.ds.czbiohub.org/. In a cell atlas, researchers try to sequence the whole organisms with single cell resolution. As you can imagine, this is a huge amount of data. For the purpose of this tutorial, we will focus on a single tissue. 
+
+We will use the specialized library `Seurat` which has been developed by Rahul Sajita and co-workers https://satijalab.org/seurat/
+
+Let's start by downloading the dataset from here: https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687
+
 
 ```{r cars}
-summary(cars)
+# make sure to instal the libraries if you haven't
+library(Seurat)
+library(dplyr)
+library(Matrix)
+library(stringr)
+library(readr)
+library(here)
 ```
 
 ## Including Plots
