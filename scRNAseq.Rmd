@@ -34,9 +34,182 @@ library(here)
 
 ## Loading Data
 
-We can read the data using the function `read.csv`
-```{r pressure, echo=FALSE}
-plot(pressure)
+We can read the data using the function `read.csv` and convert it into a sparse matrix (data is full of zeros!)
+```{r load, echo=FALSE}
+
+  #Where did you save the files? 
+  tabula_path ="../Downloads/TabulaMuris/"
+  #Here we are going to analyse the Lung but you can choose any other tissue
+  input_file = paste(tabula_path,"FACS/Kidney-counts.csv",sep="")
+
+  raw.data <- read.csv(input_file, row.names = 1)
+  raw.data <- Matrix(as.matrix(raw.data), sparse = TRUE)
+
+```
+Sort the cells by name (their name contains information about the experimental conditions)
+
+```{r sort, echo=FALSE}
+
+  cell_order_FACS <- order(colnames(raw.data))
+  raw.data = raw.data[,cell_order_FACS]
+  
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Now, let's load the _metadata_, which contains the information about the data!
+
+```{r meta, echo=FALSE}
+
+meta.data<-read.csv(paste(tabula_path,"metadata_FACS.csv",sep=""))
+#Let's take a look:
+head(meta.data)
+
+
+```
+
+The _metadata_ has all the information about the experiments. Every organ was processed and sequenced by a different research group and so we need to find __which cells correspond to which experiment__. In the [protocol](https://www.nature.com/articles/s41586-018-0590-4) they use for scRNA-seq, each cell is sequenced on a well of a [plate]( https://en.wikipedia.org/wiki/Microplate). The information in the metadata represents plates! Let's link the __plates__ to the __cells__ 
+
+```{r plates, echo=FALSE}
+plates <- str_split(colnames(raw.data),"[.]", simplify = TRUE)[,2]
+
+rownames(meta.data) <- meta.data$plate.barcode
+#let's extract the plate information for all cells,
+#plates is an array with the plate.id for each cell in the raw.data matrix
+cell.meta.data <- meta.data[plates,]
+rownames(cell.meta.data) <- colnames(raw.data) #lets rename the rows with the cell.ID
+#because
+```
+
+```{r plates2, echo=FALSE}
+
+#http://tools.thermofisher.com/content/sfs/manuals/cms_086340.pdf
+erccs <- grep(pattern = "^ERCC-", x = rownames(x = raw.data), value = TRUE)
+# there are genes (rows) that come from the ERCC control, so we can find them and calibrate the quantifitation
+# there should be 92 ERCC transcripts
+
+#percent is the ratio, for each cell, between the sum of ERCC detection divided by the total count
+percent.ercc <- Matrix::colSums(raw.data[erccs, ])/Matrix::colSums(raw.data)
+
+ercc.index <- grep(pattern = "^ERCC-", x = rownames(x = raw.data), value = FALSE)
+
+#remove the ERCC sequences
+raw.data <- raw.data[-ercc.index,] 
+```
+
+The ERCC sequences tell us about the library size and differences between cell to cell. We can plot the amount of ERCC in the data per cell and see if there are clear outliers that we should remove. 
+
+```{r ercc, echo = T}
+hist(percent.ercc)
+```
+
+Since a cell in principle should not have too many ERCC (these are only for control) we should remove cells with high ERCC content 
+
+
+ERCC sequences are useful as a _control_ for the data because they were added by the scientists in _known_ concentrations. In this way we expect ALL cells to have the same ERCC content, right? But things are not that simple, the technology is not perfect and different cells are sequenced in different ways or with different efficiency. Can you think of a way in which we could use ERCC sequences to _normalize_ the data?
+
+First, we want to get rid of cell with _too_ high ERCC content. Where would you put a _cutoff_?
+
+
+```{r ercc2, echo = T}
+
+raw.data = raw.data[,percent.ercc<0.15]
+```
+
+```{r ercc3, echo = T}
+
+#Take from meta.data only cells that remain in the matrix
+
+cell.meta.filter = cell.meta.data[colnames(raw.data), ]
+
+head(cell.meta.filter)
+```
+
+Let's now check how different are cells with each other. 
+Are there cells that have not enough data? The columns in the matrix represent the cells so we can sum over the columns and plot a histogram. 
+
+```{r ercc3_1, echo = T}
+# Total number of reads per cell
+hist(colSums(raw.data))
+
+# But some genes might have many reads while some other genes might have low expression in living cells. 
+# We can also ask then, how many genes have at least 1 read 
+
+hist(colSums(raw.data>0))
+```
+
+What is the average number of genes expressed per cells?
+
+```{r ercc4, echo = T}
+#Note that we define a gene as expressed if the cell has at least 1 read. But this definition can change. 
+
+mean(colSums(raw.data>0))
+
+#Based on the histogram we can keep only cells that have more than 1000 genes with >0 reads
+raw.data<-raw.data[,colSums(raw.data>0)>1000]
+#Try looking at the histogram now
+```
+Anothe imporant filter is by gene. Some genes are very poorly expressed, maybe because they have low expression in general or maybe they are not expressed in this particular tissue/condition. 
+
+To see the distribution of genes, we need to sum by row. 
+
+```{r filtergenes, echo = T}
+# Number of reads for each gene across cells
+hist(rowSums(raw.data))
+
+# We can also look at how many cells express each gene
+hist(rowSums(raw.data>0))
+```
+
+
+### Seurat 
+
+Seurat is a R-based software package for analysis of single cell RNA seq. I has been shown to perfom well across different datasets and normalization methods. 
+
+Here are some references where people has compared Seurat with other methods (there are many methods and packages for analysis of single cell RNA seq!)
+https://www.nature.com/articles/s41592-019-0425-8
+
+```{r seurat1, echo = T}
+
+# # # # ## SEURAT OBJECT
+tissue <- CreateSeuratObject(counts = raw.data)
+
+tissue <- AddMetaData(object = tissue, cell.meta.data)
+tissue <- AddMetaData(object = tissue, percent.ercc, col.name = "percent.ercc")
+```
+
+We can now normalize the data. One of the technical problems of RNA sequencing is that some RNA molecules are not detected and other are highly produced in cells, so the _distribution_ of expression is _wide_.
+
+```{r seurat2, echo = T}
+ 
+  tissue<-NormalizeData(object = tissue, verbose=F)
+  tissue<-FindVariableFeatures(object=tissue,selection.method ="vst",nfeatures =2000)
+   tissue<-ScaleData(tissue)
+```
+
+```{r seurat3, echo = T}
+
+tissue <- RunPCA(object = tissue, npcs = 100, verbose = FALSE)
+
+VizDimLoadings(object = tissue, dims = 1:4, reduction = "pca")
+
+ElbowPlot(tissue)
+
+```
+
+```{r seurat4, echo = T}
+#Run this only if you have python installed and if you installed UMAP
+tissue <- RunUMAP(object = tissue, reduction = "pca", dims = 1:40)
+
+# A different method for visualization is tSNE
+tissue <- RunTSNE(tissue,dims=1:10)
+
+tissue <- FindNeighbors(object = tissue, reduction = "pca", dims = 1:40)
+tissue <- FindClusters(tissue, resolution = 0.8)
+``` 
+
+
+#Finally, let's take a look at the clusters in a 2-D space 
+```{r seurat5, echo = T}
+
+DimPlot(object = tissue, reduction = "umap")
+
+```
