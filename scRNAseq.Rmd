@@ -185,6 +185,9 @@ We can now normalize the data. One of the technical problems of RNA sequencing i
    tissue<-ScaleData(tissue)
 ```
 
+
+Cells have 20k genes, but most of them are not expressed and some of them do not change in different cell types. Those are not informative genes. Some genes, however, are specific for given cell types. The PCA will find those genes and create _principal components_ which are linear combinations of genes that explain the variation between cells.  
+
 ```{r seurat3, echo = T}
 
 tissue <- RunPCA(object = tissue, npcs = 100, verbose = FALSE)
@@ -194,6 +197,8 @@ VizDimLoadings(object = tissue, dims = 1:4, reduction = "pca")
 ElbowPlot(tissue)
 
 ```
+
+An elbow plot tells us how many of these _dimensions_ or _principal components_ we need to explain the spread of the data. While the question of how many principal components should we keep is not trivial, the elbow plot gives us an estimate. For example the first 3 principal components explain a lot of standard deviation. After the 7th PC, most other component do not contribute significantly and so we say that we found an "elbow". There is another elbow at PC 15. 
 
 ```{r seurat4, echo = T}
 #Run this only if you have python installed and if you installed UMAP
@@ -211,5 +216,36 @@ tissue <- FindClusters(tissue, resolution = 0.8)
 ```{r seurat5, echo = T}
 
 DimPlot(object = tissue, reduction = "umap")
+
+```
+
+Each dot in the plot is a cell and the colour tells us to which cluster belongs. Please note that we can _visualize_ cells (which are composed of 20,000 genes!) in a two-dimensional space because all the data processing we did. 
+
+UMAP is a powerfull clustering and visualization tool and can be used in any kind of dataset. 
+
+The next question is: what is the composition of the clusters? What is the identity of those cells?
+
+### Find marker genes
+
+
+Now that we foud the clusters in the data we can ask: which genes are expressed in those clusters? What makes the clusters unique and different from the others? These are important question when we want to find out more about the cell types in the sample or when looking at a sample whose composition we don't even know e.g. a tumor sample. 
+
+Seurat includes a function called `find_all_markers` that does exactly that. 
+```{r seurat6, echo = T}
+
+tissue.markers = FindAllMarkers(tissue,only.pos = T)
+
+
+head(tissue.markers)
+
+
+```
+
+We can sort the data now using `dplyr` function [top_n()](https://dplyr.tidyverse.org/reference/top_n.html)
+
+```{r seurat7, echo = T}
+# argument wt in top_c() selects which variable we want to consider for choosing the top n genes
+tissue.markers %>% group_by(cluster) %>% top_n(n = 3, wt = avg_logFC)
+
 
 ```

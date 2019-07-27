@@ -437,12 +437,14 @@ tissue &lt;- AddMetaData(object = tissue, percent.ercc, col.name = &quot;percent
   tissue&lt;-FindVariableFeatures(object=tissue,selection.method =&quot;vst&quot;,nfeatures =2000)
    tissue&lt;-ScaleData(tissue)</code></pre>
 <pre><code>## Centering and scaling data matrix</code></pre>
+<p>Cells have 20k genes, but most of them are not expressed and some of them do not change in different cell types. Those are not informative genes. Some genes, however, are specific for given cell types. The PCA will find those genes and create <em>principal components</em> which are linear combinations of genes that explain the variation between cells.</p>
 <pre class="r"><code>tissue &lt;- RunPCA(object = tissue, npcs = 100, verbose = FALSE)
 
 VizDimLoadings(object = tissue, dims = 1:4, reduction = &quot;pca&quot;)</code></pre>
 <p><img src="scRNAseq_files/figure-html/seurat3-1.png" width="672" /></p>
 <pre class="r"><code>ElbowPlot(tissue)</code></pre>
 <p><img src="scRNAseq_files/figure-html/seurat3-2.png" width="672" /></p>
+<p>An elbow plot tells us how many of these <em>dimensions</em> or <em>principal components</em> we need to explain the spread of the data. While the question of how many principal components should we keep is not trivial, the elbow plot gives us an estimate. For example the first 3 principal components explain a lot of standard deviation. After the 7th PC, most other component do not contribute significantly and so we say that we found an “elbow”. There is another elbow at PC 15.</p>
 <pre class="r"><code>#Run this only if you have python installed and if you installed UMAP
 tissue &lt;- RunUMAP(object = tissue, reduction = &quot;pca&quot;, dims = 1:40)
 
@@ -465,6 +467,50 @@ tissue &lt;- FindNeighbors(object = tissue, reduction = &quot;pca&quot;, dims = 
 <p>#Finally, let’s take a look at the clusters in a 2-D space</p>
 <pre class="r"><code>DimPlot(object = tissue, reduction = &quot;umap&quot;)</code></pre>
 <p><img src="scRNAseq_files/figure-html/seurat5-1.png" width="672" /></p>
+<p>Each dot in the plot is a cell and the colour tells us to which cluster belongs. Please note that we can <em>visualize</em> cells (which are composed of 20,000 genes!) in a two-dimensional space because all the data processing we did.</p>
+<p>UMAP is a powerfull clustering and visualization tool and can be used in any kind of dataset.</p>
+<p>The next question is: what is the composition of the clusters? What is the identity of those cells?</p>
+</div>
+<div id="find-marker-genes" class="section level3">
+<h3>Find marker genes</h3>
+<p>Now that we foud the clusters in the data we can ask: which genes are expressed in those clusters? What makes the clusters unique and different from the others? These are important question when we want to find out more about the cell types in the sample or when looking at a sample whose composition we don’t even know e.g. a tumor sample.</p>
+<p>Seurat includes a function called <code>find_all_markers</code> that does exactly that.</p>
+<pre class="r"><code>tissue.markers = FindAllMarkers(tissue,only.pos = T)</code></pre>
+<pre><code>## Calculating cluster 0</code></pre>
+<pre><code>## Calculating cluster 1</code></pre>
+<pre><code>## Calculating cluster 2</code></pre>
+<pre><code>## Calculating cluster 3</code></pre>
+<pre><code>## Calculating cluster 4</code></pre>
+<pre class="r"><code>head(tissue.markers)</code></pre>
+<pre><code>##               p_val avg_logFC pct.1 pct.2    p_val_adj cluster   gene
+## Emcn   5.085915e-65  3.823163 0.900 0.039 1.187103e-60       0   Emcn
+## Ppap2a 1.020890e-64  3.777080 0.933 0.078 2.382860e-60       0 Ppap2a
+## Flt1   7.554842e-62  2.817337 0.867 0.035 1.763376e-57       0   Flt1
+## Tm4sf1 1.104579e-60  3.246169 0.892 0.070 2.578198e-56       0 Tm4sf1
+## Eng    8.614232e-60  3.328788 0.917 0.109 2.010648e-55       0    Eng
+## Cdh5   1.306423e-59  1.054711 0.808 0.008 3.049321e-55       0   Cdh5</code></pre>
+<p>We can sort the data now using <code>dplyr</code> function <a href="https://dplyr.tidyverse.org/reference/top_n.html">top_n()</a></p>
+<pre class="r"><code># argument wt in top_c() selects which variable we want to consider for choosing the top n genes
+tissue.markers %&gt;% group_by(cluster) %&gt;% top_n(n = 3, wt = avg_logFC)</code></pre>
+<pre><code>## # A tibble: 15 x 7
+## # Groups:   cluster [5]
+##       p_val avg_logFC pct.1 pct.2 p_val_adj cluster gene  
+##       &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt; &lt;fct&gt;   &lt;chr&gt; 
+##  1 5.09e-65      3.82 0.9   0.039  1.19e-60 0       Emcn  
+##  2 1.02e-64      3.78 0.933 0.078  2.38e-60 0       Ppap2a
+##  3 1.65e-55      4.04 0.792 0.027  3.84e-51 0       Plvap 
+##  4 5.83e-42      2.38 0.728 0.077  1.36e-37 1       Spp2  
+##  5 6.04e-39      2.63 0.621 0.033  1.41e-34 1       Slc5a2
+##  6 8.30e-37      2.62 0.951 0.579  1.94e-32 1       Gpx3  
+##  7 1.09e-54      3.93 0.742 0.013  2.55e-50 2       Egf   
+##  8 2.27e-49      5.91 0.823 0.061  5.29e-45 2       Umod  
+##  9 9.81e-38      4.62 0.694 0.061  2.29e-33 2       Klk1  
+## 10 2.91e-43      3.05 0.94  0.123  6.80e-39 3       Napsa 
+## 11 6.72e-31      2.93 0.78  0.126  1.57e-26 3       Kap   
+## 12 8.79e-27      2.80 0.9   0.304  2.05e-22 3       Cndp2 
+## 13 8.91e-29      4.42 0.854 0.185  2.08e-24 4       H2-Eb1
+## 14 1.16e-27      4.49 0.902 0.23   2.71e-23 4       H2-Aa 
+## 15 2.84e-26      4.38 0.927 0.301  6.63e-22 4       Cd74</code></pre>
 </div>
 </div>
 
