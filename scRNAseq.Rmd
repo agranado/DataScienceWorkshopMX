@@ -29,7 +29,7 @@ We will use the specialized library `Seurat` which has been developed by Rahul S
 Let's start by downloading the dataset from here: https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687
 
 
-```{r cars, echo=FALSE}
+```{r cars, echo=T}
 # make sure to instal the libraries if you haven't
 library(Seurat)
 library(dplyr)
