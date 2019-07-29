@@ -9,7 +9,7 @@ navbar:
       href: index.html
     - text: "Workshop"
       menu:
-        - text: "Day 2: Intro"
+        - text: "Day 2: Intro R"
           href: Intro.html
         - text: "Day 3: scRNA seq"
           href: scRNAseq.html
