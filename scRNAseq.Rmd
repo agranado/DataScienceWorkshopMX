@@ -22,7 +22,7 @@ We will use the specialized library `Seurat` which has been developed by Rahul S
 Let's start by downloading the dataset from here: https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687
 
 
-```{r cars}
+```{r cars, echo=FALSE}
 # make sure to instal the libraries if you haven't
 library(Seurat)
 library(dplyr)
@@ -98,7 +98,7 @@ raw.data <- raw.data[-ercc.index,]
 The ERCC sequences tell us about the library size and differences between cell to cell. We can plot the amount of ERCC in the data per cell and see if there are clear outliers that we should remove. 
 
 ```{r ercc, echo = T}
-hist(percent.ercc)
+hist(percent.ercc,main="Percentage of control ERCC reas per cell",xlab = "% ERCC per cells")
 ```
 
 Since a cell in principle should not have too many ERCC (these are only for control) we should remove cells with high ERCC content 
@@ -123,17 +123,17 @@ cell.meta.filter = cell.meta.data[colnames(raw.data), ]
 head(cell.meta.filter)
 ```
 
-Let's now check how different are cells with each other. 
-Are there cells that have not enough data? The columns in the matrix represent the cells so we can sum over the columns and plot a histogram. 
+Let's now check _how different_ are the cells with each other. 
+Are there cells that have not enough data? The columns in the matrix represent the cells so we can sum over the columns and plot a histogram. In this way we can filter _bad quality_ cells. 
 
 ```{r ercc3_1, echo = T}
 # Total number of reads per cell
-hist(colSums(raw.data))
+hist(colSums(raw.data),main = "Total number of reads per cell",xlab ="N Reads per cell" )
 
 # But some genes might have many reads while some other genes might have low expression in living cells. 
 # We can also ask then, how many genes have at least 1 read 
 
-hist(colSums(raw.data>0))
+hist(colSums(raw.data>0),main = "Total number of genes expressed by cell",xlab = "Genes per cell")
 ```
 
 What is the average number of genes expressed per cells?
@@ -152,13 +152,22 @@ Anothe imporant filter is by gene. Some genes are very poorly expressed, maybe b
 To see the distribution of genes, we need to sum by row. 
 
 ```{r filtergenes, echo = T}
-# Number of reads for each gene across cells
-hist(rowSums(raw.data))
+#we can arrange two plots in a single figure using par()
+# mrfow=c(1,2) mean we want 1 row and two columns to arrange the plots 
+par(mfrow = c(1,2))
+# Number of reads for each gene across cells (plot 1)
+hist(rowSums(raw.data),main="Total number of reads per gene ",xlab="N reads per gene")
+# Let's look at it on log scale
+hist(log10(rowSums(raw.data)),main="Total number of reads per gene ",xlab="N reads per gene (log)")
 
 # We can also look at how many cells express each gene
-hist(rowSums(raw.data>0))
-```
+par(mfrow = c(1,2))
+hist(rowSums(raw.data>0),main="Number of expressing cells per gene")
 
+hist(log10(rowSums(raw.data>0)),main="Number of expressing cells per gene (log)")
+
+```
+As we can see most genes are expressed only by a few cells
 
 ### Seurat 
 
@@ -229,6 +238,9 @@ The next question is: what is the composition of the clusters? What is the ident
 
 
 Now that we foud the clusters in the data we can ask: which genes are expressed in those clusters? What makes the clusters unique and different from the others? These are important question when we want to find out more about the cell types in the sample or when looking at a sample whose composition we don't even know e.g. a tumor sample. 
+A marker is a gene that is specifically expressed in a cell type (or cluster). Therefore, those genes are used by biologist to classify or investigate different cells. 
+
+
 
 Seurat includes a function called `find_all_markers` that does exactly that. 
 ```{r seurat6, echo = T}
@@ -249,3 +261,9 @@ tissue.markers %>% group_by(cluster) %>% top_n(n = 3, wt = avg_logFC)
 
 
 ```
+
+We have the genes names so we can now find what they do using a website like [GeneCards](https://www.genecards.org/) for gene [Gpx3](https://www.genecards.org/cgi-bin/carddisp.pl?gene=GPX3&keywords=Gpx3)
+
+### Finding the expression patters of genes in a cluster
+
+

@@ -1,5 +1,5 @@
 ---
-title: "Alejandro Granados personal page"
+title: "Data Science Workshop. Chihuahua MX 2019"
 
 knit: (function(input_file, encoding) {
   out_dir <- '.';
@@ -16,22 +16,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is a website were I post data science projects, blogs and workshops. 
-I am currently working at Caltech as a computational biologist. 
+## Clubes de Ciencia 2019
 
+### Ciencia de datos. Datos de células. ¿Células de datos?
 
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Hoy en día es casi imposible no escuchar hablar de datos. Los datos están en todos lados y nos ayudan a entender y predecir cómo funcionan las cosas. En este club aprenderemos conceptos clave de la ciencia de datos como clustering y reducción de dimensionalidad en el contexto de la expresión genética de células. Las células de tu cuerpo, las bacterias, las células de las plantas y del estómago de un ratón tienen cada una su personalidad. La personalidad de una célula o su ¨tipo¨ están determinados en gran parte por cómo prenden y apagan sus genes en un momento dado. Nuevas tecnologías para hacer mediciones de expresión genética nos permiten cuantificar el estado de miles de genes al mismo tiempo ¡para cada célula! Las preguntas ahora son: ¿qué hacer con tantos datos? ¿cómo podemos clasificar diferentes tipos de células y entender qué les da su personalidad? ¿Qué hacemos con cientos de miles de mediciones? Este es un trabajo para la ciencia de datos.   

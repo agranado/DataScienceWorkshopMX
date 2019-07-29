@@ -341,9 +341,6 @@ $(document).ready(function () {
 <p>Here, we will go through a standar pipeline to analyse scRNA-seq data from a cell atlas: the Tabula Muris <a href="https://tabula-muris.ds.czbiohub.org/" class="uri">https://tabula-muris.ds.czbiohub.org/</a>. In a cell atlas, researchers try to sequence the whole organisms with single cell resolution. As you can imagine, this is a huge amount of data. For the purpose of this tutorial, we will focus on a single tissue.</p>
 <p>We will use the specialized library <code>Seurat</code> which has been developed by Rahul Sajita and co-workers <a href="https://satijalab.org/seurat/" class="uri">https://satijalab.org/seurat/</a></p>
 <p>Let’s start by downloading the dataset from here: <a href="https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687" class="uri">https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687</a></p>
-<pre class="r"><code># make sure to instal the libraries if you haven&#39;t
-library(Seurat)
-library(dplyr)</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;dplyr&#39;</code></pre>
 <pre><code>## The following objects are masked from &#39;package:stats&#39;:
@@ -352,10 +349,6 @@ library(dplyr)</code></pre>
 <pre><code>## The following objects are masked from &#39;package:base&#39;:
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(Matrix)
-library(stringr)
-library(readr)
-library(here)</code></pre>
 <pre><code>## here() starts at /Users/alejandrog/DataScienceMX</code></pre>
 </div>
 <div id="loading-data" class="section level2">
@@ -372,7 +365,7 @@ library(here)</code></pre>
 ## 6       B002771   3_39_F Bladder                 Multiple         F</code></pre>
 <p>The <em>metadata</em> has all the information about the experiments. Every organ was processed and sequenced by a different research group and so we need to find <strong>which cells correspond to which experiment</strong>. In the <a href="https://www.nature.com/articles/s41586-018-0590-4">protocol</a> they use for scRNA-seq, each cell is sequenced on a well of a <a href="https://en.wikipedia.org/wiki/Microplate">plate</a>. The information in the metadata represents plates! Let’s link the <strong>plates</strong> to the <strong>cells</strong></p>
 <p>The ERCC sequences tell us about the library size and differences between cell to cell. We can plot the amount of ERCC in the data per cell and see if there are clear outliers that we should remove.</p>
-<pre class="r"><code>hist(percent.ercc)</code></pre>
+<pre class="r"><code>hist(percent.ercc,main=&quot;Percentage of control ERCC reas per cell&quot;,xlab = &quot;% ERCC per cells&quot;)</code></pre>
 <p><img src="scRNAseq_files/figure-html/ercc-1.png" width="672" /></p>
 <p>Since a cell in principle should not have too many ERCC (these are only for control) we should remove cells with high ERCC content</p>
 <p>ERCC sequences are useful as a <em>control</em> for the data because they were added by the scientists in <em>known</em> concentrations. In this way we expect ALL cells to have the same ERCC content, right? But things are not that simple, the technology is not perfect and different cells are sequenced in different ways or with different efficiency. Can you think of a way in which we could use ERCC sequences to <em>normalize</em> the data?</p>
@@ -397,14 +390,14 @@ head(cell.meta.filter)</code></pre>
 ## A11.MAA000801.3_11_M.1.1         Viable         M
 ## A12.B001717.3_38_F.1.1           Viable         F
 ## A12.MAA000801.3_11_M.1.1         Viable         M</code></pre>
-<p>Let’s now check how different are cells with each other. Are there cells that have not enough data? The columns in the matrix represent the cells so we can sum over the columns and plot a histogram.</p>
+<p>Let’s now check <em>how different</em> are the cells with each other. Are there cells that have not enough data? The columns in the matrix represent the cells so we can sum over the columns and plot a histogram. In this way we can filter <em>bad quality</em> cells.</p>
 <pre class="r"><code># Total number of reads per cell
-hist(colSums(raw.data))</code></pre>
+hist(colSums(raw.data),main = &quot;Total number of reads per cell&quot;,xlab =&quot;N Reads per cell&quot; )</code></pre>
 <p><img src="scRNAseq_files/figure-html/ercc3_1-1.png" width="672" /></p>
 <pre class="r"><code># But some genes might have many reads while some other genes might have low expression in living cells. 
 # We can also ask then, how many genes have at least 1 read 
 
-hist(colSums(raw.data&gt;0))</code></pre>
+hist(colSums(raw.data&gt;0),main = &quot;Total number of genes expressed by cell&quot;,xlab = &quot;Genes per cell&quot;)</code></pre>
 <p><img src="scRNAseq_files/figure-html/ercc3_1-2.png" width="672" /></p>
 <p>What is the average number of genes expressed per cells?</p>
 <pre class="r"><code>#Note that we define a gene as expressed if the cell has at least 1 read. But this definition can change. 
@@ -416,12 +409,20 @@ raw.data&lt;-raw.data[,colSums(raw.data&gt;0)&gt;1000]
 #Try looking at the histogram now</code></pre>
 <p>Anothe imporant filter is by gene. Some genes are very poorly expressed, maybe because they have low expression in general or maybe they are not expressed in this particular tissue/condition.</p>
 <p>To see the distribution of genes, we need to sum by row.</p>
-<pre class="r"><code># Number of reads for each gene across cells
-hist(rowSums(raw.data))</code></pre>
+<pre class="r"><code>#we can arrange two plots in a single figure using par()
+# mrfow=c(1,2) mean we want 1 row and two columns to arrange the plots 
+par(mfrow = c(1,2))
+# Number of reads for each gene across cells (plot 1)
+hist(rowSums(raw.data),main=&quot;Total number of reads per gene &quot;,xlab=&quot;N reads per gene&quot;)
+# Let&#39;s look at it on log scale
+hist(log10(rowSums(raw.data)),main=&quot;Total number of reads per gene &quot;,xlab=&quot;N reads per gene (log)&quot;)</code></pre>
 <p><img src="scRNAseq_files/figure-html/filtergenes-1.png" width="672" /></p>
 <pre class="r"><code># We can also look at how many cells express each gene
-hist(rowSums(raw.data&gt;0))</code></pre>
-<p><img src="scRNAseq_files/figure-html/filtergenes-2.png" width="672" /></p>
+par(mfrow = c(1,2))
+hist(rowSums(raw.data&gt;0),main=&quot;Number of expressing cells per gene&quot;)
+
+hist(log10(rowSums(raw.data&gt;0)),main=&quot;Number of expressing cells per gene (log)&quot;)</code></pre>
+<p><img src="scRNAseq_files/figure-html/filtergenes-2.png" width="672" /> As we can see most genes are expressed only by a few cells</p>
 <div id="seurat" class="section level3">
 <h3>Seurat</h3>
 <p>Seurat is a R-based software package for analysis of single cell RNA seq. I has been shown to perfom well across different datasets and normalization methods.</p>
