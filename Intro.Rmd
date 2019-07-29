@@ -14,7 +14,7 @@ In this section we will learn how to explore a dataset. We will use the `Titanic
 
 While exploring the dataset, we will also learn some useful function to explore, organize and visualize data. 
 
-```{r cars}
+```{r cars, message=F}
 #for fancy plots
 library(ggplot2)
 #install.packages("titanic")
@@ -22,7 +22,9 @@ library(titanic)
 
 #For data frame manipulation
 library(dplyr)
+```
 
+```{r loadData, echo =T}
 titanic<-titanic_train
 head(titanic)
 ```
@@ -104,7 +106,7 @@ As expected (?), passengers from the first class had the highest chance to survi
 
 Now, we want to know if there is a difference in age between men and women. We could do it in a similar way as above but the variable `Age` takes many different values, from babies to old men. We need a different type of plot. A boxplot, displays the distribution of values in a very convenient way. We can group it by gender using `x=Sex` and we want to plot the variable Age so we set `y=Age` the `fill=Sex` is to color it by gender. 
 
-```{r stackedBar4, echo=T}
+```{r stackedBar4, echo=T,warning=F}
 
 ggplot(data=titanic,aes(x=Sex,y=Age,fill=Sex)) + geom_boxplot()
 
@@ -112,7 +114,7 @@ ggplot(data=titanic,aes(x=Sex,y=Age,fill=Sex)) + geom_boxplot()
 
 We can check 3 variables at the same time: Class, Sex and Age
 
-```{r stackedBar5, echo=T}
+```{r stackedBar5, echo=T, warning=F}
 
 ggplot(data=titanic,aes(x=Pclass,y=Age,fill=Sex)) + geom_boxplot()
 
@@ -122,7 +124,7 @@ We see that older people, both male and female, occupied the first class while y
 
 Exercise: Can you explain what this command is doing? How do you interpret the plots?
 
-```{r multHist, echo=T}
+```{r multHist, echo=T, warning = F}
 ggplot(titanic,aes(x=Age,fill=Survived)) +
   theme_bw() + facet_wrap(Sex~Pclass)+geom_histogram(binwidth=5) + 
   labs(y="Survived",x="Age")
