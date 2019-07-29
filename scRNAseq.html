@@ -12,7 +12,7 @@
 <meta name="author" content="Alejandro Granados" />
 
 
-<title>A pipeline to analyse single-cell RNA sequencing data</title>
+<title>An introduction to the analysis single-cell RNA sequencing data</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -301,7 +301,7 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="Intro.html">Day 2: Intro</a>
+      <a href="Intro.html">Day 2: Intro R</a>
     </li>
     <li>
       <a href="scRNAseq.html">Day 3: scRNA seq</a>
@@ -327,7 +327,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">A pipeline to analyse single-cell RNA sequencing data</h1>
+<h1 class="title toc-ignore">An introduction to the analysis single-cell RNA sequencing data</h1>
 <h4 class="author">Alejandro Granados</h4>
 <h4 class="date">24/07/2019</h4>
 
@@ -336,9 +336,11 @@ $(document).ready(function () {
 
 <div id="single-cell-rna-seq" class="section level2">
 <h2>Single cell RNA seq</h2>
-<p>Single cell examines the sequence information of RNA inside individual cells. By amplifying the signal from RNA inside the cell and converting the RNA into DNA, we can use sequencing methods to recover the information of which RNAs were present in a given cell. Moreover, different technologies allow to sequence multiple cells in parallel. For example, the 10x Genomics platform enables up to 10,000 cells per sample!</p>
-<p>The amount of genes in a given cell (~20,000 for mouse) times the number of cells means that we are dealing with really large matrices. One challenge, however, is that until today we can not read ALL the RNA from a single cell. In the processes of sequencing, most of the RNA is lost! This <code>dropout</code> problem imposes serious challenges for data analysis.</p>
-<p>Here, we will go through a standar pipeline to analyse scRNA-seq data from a cell atlas: the Tabula Muris <a href="https://tabula-muris.ds.czbiohub.org/" class="uri">https://tabula-muris.ds.czbiohub.org/</a>. In a cell atlas, researchers try to sequence the whole organisms with single cell resolution. As you can imagine, this is a huge amount of data. For the purpose of this tutorial, we will focus on a single tissue.</p>
+<p>Our bodies and all of the living organisms are made of cells, the fundamental units of life. There are also viruses but let’s keep them for another day. Each cell has a copy of the genetic information necessary to grow, thrive in diverse environments and reproduce. In our bodies, there are around 37 trillion cells. Each one of them has <strong>the same</strong> genetic information. So, why are they different? The cells in our eyes are different from the cells in our skin. The difference relies on their <em>personality</em>. The personality of a cell is determined in part from <em>how</em> they use their genetic information. Which genes are ON or OFF and WHEN?</p>
+<p>Inside a cell, there are thousands of reactions taking place in parallel, some of them deal with information. Turn a gene ON means, in general: let’s read the DNA, transcribe the message to RNA and then <em>translated</em> to produce proteins, the building blocks of cells. Therefore, DNA is <em>potential</em> information but needs to be <em>transcribed</em> to RNA to be used or <em>expressed</em> into proteins. In general, RNA molecules tell us which genes are actively being transcribed or <em>expressed</em> and so, having information about RNA levels inside the cell tell us something about the personality of a cell! As with people, personality is determined by multiple factors, for cells gene expression is one important factor but not the only one.</p>
+<p>Single-cell RNA-seq examines the sequence information of RNA inside individual cells as a variable that indicates gene activity. By amplifying the signal from RNA molecules inside the cell and converting the RNA into DNA, we can use sequencing methods to recover information about which RNAs were present in a given cell. Moreover, different technologies allow sequencing of multiple cells in parallel. For example, the 10x Genomics platform enables up to 10,000 cells per sample! Therefore, scRNA-seq provides us with data for individual cells of which genes they had turned ON or OFF.</p>
+<p>The number of genes in a given cell (~23,000 for mouse) times the number of cells means that we are dealing with really large matrices when analyzing RNA-seq data. One challenge, however, is that until today we cannot read <em>ALL</em> the RNA from a single cell. During the process of sequencing the sample, most of the RNA is lost! This <code>dropout</code> problem imposes serious challenges for data analysis.</p>
+<p>Here, we will go through a standard pipeline to analyze scRNA-seq data from a cell atlas: The Tabula Muris <a href="https://tabula-muris.ds.czbiohub.org/" class="uri">https://tabula-muris.ds.czbiohub.org/</a>. In a cell atlas, researchers try to sequence the whole organism with single-cell resolution. As you can imagine, this is a huge amount of data. For this tutorial, we will focus on a single tissue.</p>
 <p>We will use the specialized library <code>Seurat</code> which has been developed by Rahul Sajita and co-workers <a href="https://satijalab.org/seurat/" class="uri">https://satijalab.org/seurat/</a></p>
 <p>Let’s start by downloading the dataset from here: <a href="https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687" class="uri">https://figshare.com/articles/Single-cell_RNA-seq_data_from_Smart-seq2_sequencing_of_FACS_sorted_cells_v2_/5829687</a></p>
 <pre><code>## 
@@ -474,7 +476,7 @@ tissue &lt;- FindNeighbors(object = tissue, reduction = &quot;pca&quot;, dims = 
 </div>
 <div id="find-marker-genes" class="section level3">
 <h3>Find marker genes</h3>
-<p>Now that we foud the clusters in the data we can ask: which genes are expressed in those clusters? What makes the clusters unique and different from the others? These are important question when we want to find out more about the cell types in the sample or when looking at a sample whose composition we don’t even know e.g. a tumor sample.</p>
+<p>Now that we foud the clusters in the data we can ask: which genes are expressed in those clusters? What makes the clusters unique and different from the others? These are important question when we want to find out more about the cell types in the sample or when looking at a sample whose composition we don’t even know e.g. a tumor sample. A marker is a gene that is specifically expressed in a cell type (or cluster). Therefore, those genes are used by biologist to classify or investigate different cells.</p>
 <p>Seurat includes a function called <code>find_all_markers</code> that does exactly that.</p>
 <pre class="r"><code>tissue.markers = FindAllMarkers(tissue,only.pos = T)</code></pre>
 <pre><code>## Calculating cluster 0</code></pre>
@@ -512,6 +514,10 @@ tissue.markers %&gt;% group_by(cluster) %&gt;% top_n(n = 3, wt = avg_logFC)</cod
 ## 13 8.91e-29      4.42 0.854 0.185  2.08e-24 4       H2-Eb1
 ## 14 1.16e-27      4.49 0.902 0.23   2.71e-23 4       H2-Aa 
 ## 15 2.84e-26      4.38 0.927 0.301  6.63e-22 4       Cd74</code></pre>
+<p>We have the genes names so we can now find what they do using a website like <a href="https://www.genecards.org/">GeneCards</a> for gene <a href="https://www.genecards.org/cgi-bin/carddisp.pl?gene=GPX3&amp;keywords=Gpx3">Gpx3</a></p>
+</div>
+<div id="finding-the-expression-patters-of-genes-in-a-cluster" class="section level3">
+<h3>Finding the expression patters of genes in a cluster</h3>
 </div>
 </div>
 

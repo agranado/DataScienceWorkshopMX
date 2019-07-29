@@ -1,5 +1,5 @@
 ---
-title: "A pipeline to analyse single-cell RNA sequencing data"
+title: "An introduction to the analysis single-cell RNA sequencing data"
 author: "Alejandro Granados"
 date: "24/07/2019"
 output: html_document
@@ -11,11 +11,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Single cell RNA seq
 
-Single cell examines the sequence information of RNA inside individual cells. By amplifying the signal from RNA inside the cell and converting the RNA into DNA, we can use sequencing methods to recover the information of which RNAs were present in a given cell. Moreover, different technologies allow to sequence multiple cells in parallel. For example, the 10x Genomics platform enables up to 10,000 cells per sample! 
+Our bodies and all of the living organisms are made of cells, the fundamental units of life. There are also viruses but let's keep them for another day. Each cell has a copy of the genetic information necessary to grow, thrive in diverse environments and reproduce. In our bodies, there are around 37 trillion cells. Each one of them has __the same__ genetic information. So, why are they different? The cells in our eyes are different from the cells in our skin. The difference relies on their _personality_. The personality of a cell is determined in part from _how_ they use their genetic information. Which genes are ON or OFF and WHEN? 
 
-The amount of genes in a given cell (~20,000 for mouse) times the number of cells means that we are dealing with really large matrices. One challenge, however, is that until today we can not read ALL the RNA from a single cell. In the processes of sequencing, most of the RNA is lost! This `dropout` problem imposes serious challenges for data analysis. 
+Inside a cell, there are thousands of reactions taking place in parallel, some of them deal with information. Turn a gene ON means, in general:  let's read the DNA, transcribe the message to RNA and then _translated_ to produce proteins, the building blocks of cells. Therefore, DNA is _potential_ information but needs to be _transcribed_ to RNA to be used or _expressed_ into proteins. In general, RNA molecules tell us which genes are actively being transcribed or _expressed_ and so, having information about RNA levels inside the cell tell us something about the personality of a cell! As with people, personality is determined by multiple factors, for cells gene expression is one important factor but not the only one. 
 
-Here, we will go through a standar pipeline to analyse scRNA-seq data from a cell atlas: the Tabula Muris https://tabula-muris.ds.czbiohub.org/. In a cell atlas, researchers try to sequence the whole organisms with single cell resolution. As you can imagine, this is a huge amount of data. For the purpose of this tutorial, we will focus on a single tissue. 
+Single-cell RNA-seq examines the sequence information of RNA inside individual cells as a variable that indicates gene activity. By amplifying the signal from RNA molecules inside the cell and converting the RNA into DNA, we can use sequencing methods to recover information about which RNAs were present in a given cell. Moreover, different technologies allow sequencing of multiple cells in parallel. For example, the 10x Genomics platform enables up to 10,000 cells per sample! Therefore, scRNA-seq provides us with data for individual cells of which genes they had turned ON or OFF.
+
+The number of genes in a given cell (~23,000 for mouse) times the number of cells means that we are dealing with really large matrices when analyzing RNA-seq data. One challenge, however, is that until today we cannot read _ALL_ the RNA from a single cell. During the process of sequencing the sample, most of the RNA is lost! This `dropout` problem imposes serious challenges for data analysis. 
+
+For a deeper introduction to scRNA-seq, please read this [article]( https://bitesizebio.com/40996/beginners-guide-to-single-cell-rna-sequencing/).
+
+Here, we will go through a standard pipeline to analyze scRNA-seq data from a cell atlas: The Tabula Muris https://tabula-muris.ds.czbiohub.org/. In a cell atlas, researchers try to sequence the whole organism with single-cell resolution. As you can imagine, this is a huge amount of data. For this tutorial, we will focus on a single tissue.
+
 
 We will use the specialized library `Seurat` which has been developed by Rahul Sajita and co-workers https://satijalab.org/seurat/
 
