@@ -3,6 +3,8 @@ output_dir: "."
 title: "Distill for R Markdown"
 navbar:
   right:
+    - text: "Home"
+      href: "index.html"
     - text: "CdC2019"
       href: CdC2019.html
     - text: "Projects"
@@ -10,7 +12,7 @@ navbar:
     - text: "Workshop"
       menu:
         - text: "Introduction"
-        - href: CdC2019.html
+          href: CdC2019.html
         - text: "Exploring data in R"
           href: Intro.html
         - text: "Single-cell RNA sequencing"
