@@ -1,5 +1,5 @@
 ---
-title: "Data Science Workshop. Chihuahua MX 2019"
+title: "Alejandro Granados Personal website"
 
 knit: (function(input_file, encoding) {
   out_dir <- '.';
