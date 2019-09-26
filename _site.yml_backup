@@ -20,7 +20,5 @@ navbar:
         - text: "---"
         - text: "Additional Material"
           href: metadata.html
-output:
-  html_document:
-    highlight: pygments
-    css: style.css
+    - icon: fab fa-github
+      href: https://github.com/rstudio/distill
