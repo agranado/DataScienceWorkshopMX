@@ -4,6 +4,7 @@ title: "Distill for R Markdown"
 navbar:
   right:
     - text: "Home"
+      icon: fa-home
       href: "index.html"
     - text: "CdC2019"
       href: CdC2019.html
