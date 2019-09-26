@@ -1,0 +1,29 @@
+---
+title: "Clubes de Ciencia 2019"
+
+knit: (function(input_file, encoding) {
+  out_dir <- '.';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'CdC2019.html'))})
+
+author: "Alejandro AG"
+date: "21/07/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Clubes de Ciencia 2019
+
+***
+# A Data Science workshop for analysis of biological data
+
+***
+
+### Ciencia de datos. Datos de células. ¿Células de datos?
+
+Hoy en día es casi imposible no escuchar hablar de datos. Los datos están en todos lados y nos ayudan a entender y predecir cómo funcionan las cosas. En este club aprenderemos conceptos clave de la ciencia de datos como clustering y reducción de dimensionalidad en el contexto de la expresión genética de células. Las células de tu cuerpo, las bacterias, las células de las plantas y del estómago de un ratón tienen cada una su personalidad. La personalidad de una célula o su ¨tipo¨ están determinados en gran parte por cómo prenden y apagan sus genes en un momento dado. Nuevas tecnologías para hacer mediciones de expresión genética nos permiten cuantificar el estado de miles de genes al mismo tiempo ¡para cada célula! Las preguntas ahora son: ¿qué hacer con tantos datos? ¿cómo podemos clasificar diferentes tipos de células y entender qué les da su personalidad? ¿Qué hacemos con cientos de miles de mediciones? Este es un trabajo para la ciencia de datos.   

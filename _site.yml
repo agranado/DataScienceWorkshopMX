@@ -9,9 +9,11 @@ navbar:
       href: index.html
     - text: "Workshop"
       menu:
-        - text: "Day 2: Intro R"
+	  	- text: "Introduction"
+		- href: CdC2019.html
+        - text: "Exploring data in R"
           href: Intro.html
-        - text: "Day 3: scRNA seq"
+        - text: "Single-cell RNA sequencing"
           href: scRNAseq.html
         - text: "---"
         - text: "Additional Material"
