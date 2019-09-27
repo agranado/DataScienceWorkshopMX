@@ -2,11 +2,9 @@ name: "CdC2019"
 output_dir: "."
 output:
   html_document:
-    theme: yeti
     highlight: pygments
     css: style.css
 navbar:
-  title: "Distill for R Markdown"
   left:
     - text: "Home"
       icon: fa-home

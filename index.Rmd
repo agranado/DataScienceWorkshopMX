@@ -1,5 +1,5 @@
 ---
-title: "Alejandro Granados Personal website"
+title: "A"
 
 knit: (function(input_file, encoding) {
   out_dir <- '.';
