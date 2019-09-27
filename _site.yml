@@ -8,7 +8,7 @@ navbar:
     - text: "Projects"
       menu:
         - text: "DREAM challenge"
-          href: dream.html
+          href: DREAM.html
     - text: "CdC2019"
       href: CdC2019.html
     - text: "Workshop"
