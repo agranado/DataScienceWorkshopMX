@@ -5,10 +5,12 @@ navbar:
     - text: "Home"
       icon: fa-home
       href: "index.html"
+    - text: "Projects"
+      menu:
+        - text: "DREAM challenge"
+          href: dream.html
     - text: "CdC2019"
       href: CdC2019.html
-    - text: "Projects"
-      href: index.html
     - text: "Workshop"
       menu:
         - text: "Introduction"
