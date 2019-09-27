@@ -1,9 +1,5 @@
 name: "CdC2019"
 output_dir: "."
-output:
-  html_document:
-    highlight: pygments
-    css: style.css
 navbar:
   left:
     - text: "Home"
