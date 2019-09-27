@@ -1,8 +1,13 @@
 name: "CdC2019"
 output_dir: "."
-title: "Distill for R Markdown"
+output:
+  html_document:
+    theme: yeti
+    highlight: pygments
+    css: style.css
 navbar:
-  right:
+  title: "Distill for R Markdown"
+  left:
     - text: "Home"
       icon: fa-home
       href: "index.html"
@@ -21,7 +26,3 @@ navbar:
         - text: "---"
         - text: "Additional Material"
           href: metadata.html
-output:
-  html_document:
-    highlight: pygments
-    css: style.css
