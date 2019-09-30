@@ -1,7 +1,11 @@
 name: "CdC2019"
 output_dir: "."
+output:
+  html_document:
+    theme: yeti    
+
 navbar:
-  left:
+  right:
     - text: "Home"
       icon: fa-home
       href: "index.html"
