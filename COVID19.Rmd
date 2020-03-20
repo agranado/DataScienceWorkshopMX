@@ -1,0 +1,254 @@
+---
+title: "COVID19 Cases in Real time"
+
+knit: (function(input_file, encoding) {
+  out_dir <- '.';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'COVID19.html'))})
+
+author: "Alejandro AG"
+date: "18/03/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r loadlib, echo=F, results='hide', message=F, warning=F}
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(tidyr)
+library(RCurl)
+library(ggthemes)
+library(ggrepel)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("sf")
+library(rgeos)
+library(tmap)
+```
+
+## The dataset: Time series data for COVID19 cases in xx countries. Updated daily. 
+
+<br><br>
+
+This analysis build up on the amazing work and ideas by  [Tomas Pueyo](https://medium.com/@tomaspueyo/coronavirus-act-today-or-people-will-die-f4d3d9cd99ca). Pueyo's used a [public dataset](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv) compiled by John Hopkins University. 
+
+
+
+**Downloading the datasets:**
+
+
+```{r echo=F, results='hide', message=F, warning=F}
+aa = getURL("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
+
+covid_data = read.csv(text = aa)
+
+covid_data %>% group_by(Country.Region) %>% select(-c(Lat,Long,Province.State)) -> filtered_data
+
+
+
+# # #
+deaths_url = getURL("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv")
+
+covid_deaths = read.csv(text = deaths_url)
+covid_deaths %>% group_by(Country.Region) %>% select(-c(Lat,Long,Province.State)) -> filtered_deaths
+
+
+```
+
+
+```{r echo=F, message = F, warning = F}
+# Format the dataset, specially the date 
+convertToDate2<-function(x){     
+
+  month_day=do.call(rbind,str_split(x,"\\."))
+  month_day[,1] %>% str_replace(pattern ="X",replacement="") ->month
+  month_day[,3] %>% str_replace(pattern ="20",replacement="2020") ->year
+
+  return(paste(year, month, month_day[,2],sep="-"))
+}
+
+x = names(filtered_data)[-1];
+names(filtered_data) = c(names(filtered_data)[1], convertToDate2(x) )
+
+filtered_data %>% gather('Date','Cases',-c(Country.Region)) -> tidy_data
+
+#now data is tidy 
+x = names(filtered_deaths)[-1];
+names(filtered_deaths) = c(names(filtered_deaths)[1], convertToDate2(x) )
+
+filtered_deaths %>% gather('Date','Cases',-c(Country.Region)) -> tidy_deaths
+
+
+
+```
+<br><br>
+
+
+## Total cases COVID19 worldwide
+
+
+```{r echo=F, message = F, warning = F, fig3, fig.height = 6, fig.width = 12 }
+# same countries as before
+# we need to rename manually some of them because they don't appear with the same name as in the data frame
+
+theme_set(theme_bw())
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+ tidy_data %>%  group_by(Country.Region,Date) %>% summarize(Cases = sum(Cases))  %>% group_by(Country.Region) %>% summarize(max = max(Cases)) %>% arrange(desc(max)) %>% select(Country.Region,max) -> top_countries
+
+
+top_countries$Country.Region %>% str_replace("US","United States") %>% str_replace("Korea, South","Korea") -> long_names
+
+top_countries$Country.Region = long_names
+# we are going to do left-join by "name"
+# we can also add more variables at this point, time to 100th case, death rate, etc
+names(top_countries)<-c("name","Covid_cases")
+
+world_moll = st_transform(world, crs = "+proj=moll")
+
+left_join(world_moll,top_countries, by ="name") -> world_covid
+
+
+world_covid %>% mutate(COVID_cases_log = log10(Covid_cases)) %>% tm_shape() + tm_fill(col="Covid_cases",breaks = 10^(0:5),title = paste("COVID19 cases",format(Sys.Date(),'%b/%d')), legend.format =list(format="f", big.mark = ',',scientific = T),style ="cont") + tm_borders()  + tm_layout(legend.outside = F,legend.text.size = 1.5,legend.title.size = 2)
+```
+
+<br><br>
+
+
+## Total cases per day (countries with more than 1000 cases as today)
+
+```{r echo=F, message = F, warning = F}
+tidy_data %>% group_by(Country.Region,Date) %>% summarize(Cases = sum(Cases)) %>% filter(Cases ==max(Cases)) %>% arrange(desc(Cases)) %>% filter(Cases>=1000) %>% select(Country.Region) -> plot_countries
+
+tidy_data$Date <-as.Date(tidy_data$Date)
+
+tidy_data %>% group_by(Country.Region,Date) %>% summarize(Cases = sum(Cases)) %>% filter(Country.Region %in% plot_countries$Country.Region) %>% filter(Country.Region!="China") %>% filter(Date>as.Date('2020-02-14')) -> plot_data 
+
+plot_data %>% filter(Date==last(Date)) %>% pull(Country.Region) %>% as.character() -> label_countries 
+
+label_countries %>% str_replace(pattern = "United Kingdom","UK") %>% str_replace("Korea, South","S Korea") -> label_countries
+
+
+```
+
+
+```{r echo=F, message = F, warning = F, fig1, fig.height = 7, fig.width = 10}
+  plot_data %>% ggplot(aes(x =Date,y = Cases,color=Country.Region)) + geom_path() + geom_point() + scale_x_date(date_labels = "%b/%d")  + theme_economist(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_data %>% filter(Date == last(Date)), aes(label = label_countries), nudge_x =2,xlim = c(last(plot_data$Date),NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(as.Date('2020-02-14'), last(plot_data$Date) + 4 )
+
+```
+
+<br><br>
+
+## Total cases per day since day of 100th case
+
+
+```{r echo=F, message = F, warning = F, fig2, fig.height = 11, fig.width = 10 }
+
+
+
+# find the date then substract to normalize the axis 
+plot_data %>% group_by(Country.Region) %>% filter(Cases >99) %>% top_n(1,-Cases) -> plot_data_since_100
+
+plot_data[,"Diff"] <- NA
+for(i in 1:dim( plot_data_since_100 )[1] ){
+   plot_data[plot_data$Country.Region==plot_data_since_100$Country.Region[i],]$Diff =  plot_data$Date[plot_data$Country.Region==plot_data_since_100$Country.Region[i]] - plot_data_since_100$Date[i]
+    
+}
+
+
+plot_data %>% ggplot(aes(x =Diff,y = Cases,color=Country.Region)) + geom_path() + geom_point() + theme_economist(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_data %>% filter(Date == last(Date)), aes(label = label_countries), nudge_x =2,xlim = c(max(plot_data$Diff),NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(0,max(plot_data$Diff)+4)
+
+
+```
+
+
+<br><br>
+
+## Cases per million habitants (since day of 100th case)
+
+
+
+```{r echo=F, message = F, warning = F, fig7, fig.width = 10}
+
+
+world_moll %>% select(name,pop_est) -> world_population
+
+world_population<-as.data.frame(world_population)
+
+names(world_population)<-c("Country.Region","population","geometry")
+
+world_population$population<-world_population$population/10^6
+plot_data_pm = plot_data
+plot_data_pm$Country.Region %>% str_replace("US","United States") %>% str_replace("Korea, South","Korea") -> plot_data_pm$Country.Region
+
+left_join(plot_data_pm,world_population,by='Country.Region') %>% mutate(Cases_pm = Cases/population) ->plot_data_pm
+
+ plot_data_pm$Diff = plot_data$Diff
+
+ plot_data_pm %>% ggplot(aes(x =Diff,y = Cases_pm,color=Country.Region)) + geom_path() + geom_point() + theme_economist(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_data_pm %>% filter(Date == last(Date)), aes(label = label_countries), nudge_x =2,xlim = c(max(plot_data_pm$Diff),NA), hjust = 0, direction ='y',segment.size = 0.1, segment.colour = 'gray50',size = 4)  + xlim(0,max(plot_data$Diff)+4)
+
+```
+
+
+
+
+
+
+<br><br>
+
+## Total deaths per day
+
+
+```{r echo=F, message = F, warning = F}
+tidy_deaths %>% group_by(Country.Region,Date) %>% summarize(Cases = sum(Cases)) %>% filter(Cases ==max(Cases)) %>% arrange(desc(Cases)) %>% filter(Cases>=20) %>% select(Country.Region) -> plot_countries_deaths
+
+
+tidy_deaths$Date <-as.Date(tidy_deaths$Date)
+
+tidy_deaths %>% group_by(Country.Region,Date) %>% summarize(Cases = sum(Cases)) %>% filter(Country.Region %in% plot_countries_deaths$Country.Region)-> plot_deaths 
+
+plot_deaths %>% filter(Date==last(Date)) %>% pull(Country.Region) %>% as.character() -> label_countries_deaths 
+
+label_countries_deaths %>% str_replace(pattern = "United Kingdom","UK") %>% str_replace("Korea, South","S Korea") -> label_countries_deaths
+
+
+
+```
+
+
+```{r echo=F, message = F, warning = F, fig4, fig.height = 7, fig.width = 10}
+plot_deaths %>% ggplot(aes(x =Date,y = Cases,color=Country.Region)) + geom_path() + geom_point() + scale_x_date(date_labels = "%b/%d")  + theme_wsj(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_deaths %>% filter(Date == last(Date)), aes(label = label_countries_deaths), nudge_x =2,xlim = c(last(plot_deaths$Date),NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(first(plot_deaths$Date) + 4, last(plot_deaths$Date) + 6 )
+```
+
+
+<br><br>
+
+## Total deaths per day since 10th death
+
+
+```{r echo=F, message = F, warning = F, fig5, fig.height = 11, fig.width = 10 }
+
+# find the date then substract to normalize the axis 
+plot_deaths %>% group_by(Country.Region) %>% filter(Cases >10) %>% top_n(1,-Cases) -> plot_deaths_since_10
+
+plot_deaths[,"Diff"] <- NA
+for(i in 1:dim( plot_deaths_since_10 )[1] ){
+   plot_deaths[plot_deaths$Country.Region==plot_deaths_since_10$Country.Region[i],]$Diff =  plot_deaths$Date[plot_deaths$Country.Region==plot_deaths_since_10$Country.Region[i]] - plot_deaths_since_10$Date[i]
+    
+}
+
+
+plot_deaths %>% ggplot(aes(x =Diff,y = Cases,color=Country.Region)) + geom_path() + geom_point() + theme_wsj(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_deaths %>% filter(Date == last(Date)), aes(label = label_countries_deaths), nudge_x =2,xlim = c(max(plot_deaths$Diff[plot_deaths$Country.Region=='Iran']) + 7,NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(0,max(plot_deaths$Diff)+4)
+
+
+
+
+```
+
