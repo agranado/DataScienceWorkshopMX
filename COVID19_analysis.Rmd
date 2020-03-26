@@ -1,0 +1,380 @@
+---
+title: "COVID19 Cases in Real time"
+author: "Alejandro Granados"
+date: "23/03/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# The dataset: Time series data for COVID19 worldwide. Updated daily. 
+
+<br><br>
+
+This analysis builds up on the amazing work and ideas by  [Tomas Pueyo](https://medium.com/@tomaspueyo/coronavirus-act-today-or-people-will-die-f4d3d9cd99ca). Pueyo's used a [public dataset](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv) compiled by John Hopkins University. 
+
+
+
+```{r loadlib,echo=F, results='hide', message=F, warning=F}
+
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(tidyr)
+library(RCurl)
+library(ggthemes)
+library(ggrepel)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("sf")
+library(rgeos)
+library(tmap)
+library(RColorBrewer)
+library(cowplot)
+library(plotly)
+
+```
+
+
+```{r data_url, echo=F, results='hide', message=F, warning=F}
+covid_url = getURL("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv") 
+#recovered_url = getURL("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv")
+deaths_url = getURL("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
+
+
+
+# When reading the raw data files, the dates come as columns and are not properly formatted
+# This function will convert a string from the raw format into the format dd-mm-yyyy which can be read and converted to a Date object
+convertToDate2<-function(x){     
+
+  month_day=do.call(rbind,str_split(x,"\\."))
+  month_day[,1] %>% str_replace(pattern ="X",replacement="") ->month
+  month_day[,3] %>% str_replace(pattern ="20",replacement="2020") ->year
+
+  return(paste(year, month, month_day[,2],sep="-"))
+}
+
+# Load files
+covid_data = read.csv(text = covid_url)
+covid_deaths = read.csv(text = deaths_url)
+#covid_recovered = read.csv(text = recovered_url)
+
+# Convert the date format
+names(covid_data)[-c(1:4)] = convertToDate2(names(covid_data)[-c(1:4)])
+names(covid_deaths)[-c(1:4)] = convertToDate2(names(covid_deaths)[-c(1:4)])
+#names(covid_recovered)[-c(1:4)] = convertToDate2(names(covid_recovered)[-c(1:4)])
+
+# Use gather to make tidy data frames
+#covid_recovered %>% gather('Date','Cases',-c(Province.State,Country.Region,Lat,Long)) ->tidy_recovered
+covid_data %>% gather('Date','Cases',-c(Province.State,Country.Region,Lat,Long)) ->tidy_cases
+covid_deaths %>% gather('Date','Cases',-c(Province.State,Country.Region,Lat,Long)) ->tidy_deaths
+
+# Convert date to Date objects (easier to use)
+tidy_cases$Date = as.Date(tidy_cases$Date)
+tidy_deaths$Date = as.Date(tidy_deaths$Date)
+#tidy_recovered$Date = as.Date(tidy_recovered$Date)
+
+# Rename our variables of interest
+names(tidy_deaths)[6]<-'Deaths'
+#names(tidy_recovered)[6]<-'Recovered'
+
+# Merge into single dataset 
+#covid19_dataset <- merge(merge(tidy_cases,tidy_deaths), tidy_recovered) 
+covid19_dataset <- merge(tidy_cases,tidy_deaths)
+
+
+```
+
+## Fig1. World distribution of COVID19 cases 
+To visualize the dataset as a world heatmap we first summarise each country as their current number of confirmed cases. We can use the library rnaturalearth to retrieve a dataframe with geographic information about all countries plus additional information such as estimated population, GDP, etc. 
+
+```{r echo=F, results='hide', message=F, warning=F,fig.height = 8, fig.width = 8}
+
+
+# Retrive World information 
+world <- ne_countries(scale = "medium", returnclass = "sf")
+#world_moll = st_transform(world, crs = "+proj=moll")
+world_moll = lwgeom::st_transform_proj(world,crs='+proj=wintri')
+# get the total (max) cases per country for map heatmap
+# For data with Recovered
+# covid19_dataset %>%  group_by(Country.Region,Date) %>% 
+#                     summarize(Cases = sum(Cases),Deaths=sum(Deaths),Recovered = sum(Recovered))  %>% 
+#                     group_by(Country.Region) %>% 
+#                     summarize(Cases = max(Cases),Deaths = max(Deaths),Recovered = max(Recovered)) %>% 
+#                     arrange(desc(Cases)) -> static_data
+#with out Recovered
+covid19_dataset %>%  group_by(Country.Region,Date) %>% 
+                    summarize(Cases = sum(Cases),Deaths=sum(Deaths))  %>% 
+                    group_by(Country.Region) %>% 
+                    summarize(Cases = max(Cases),Deaths = max(Deaths)) %>% 
+                    arrange(desc(Cases)) -> static_data
+
+# Some names for countries don't agree between the COVID data and the World data so we replace them
+static_data$Country.Region %>% str_replace("US","United States") %>% 
+                            str_replace("Korea, South","Korea") -> static_data$Country.Region
+
+# 'name' will be the variable for the country's name
+names(static_data)[1] = 'name'
+# merge dataset by 'name'
+left_join(world_moll, static_data, by='name') -> world_covid
+
+
+world_covid %>% mutate(COVID_cases_log = log10(Cases)) %>% 
+                tm_shape() + 
+                tm_fill(col="Cases",breaks = 10^(0:5),
+                        title = paste("COVID19 cases",format(Sys.Date(),'%b/%d')), 
+                        legend.format =list(format="f", big.mark = ',',scientific = T),style ="cont") + 
+                tm_borders()  + 
+                tm_layout(legend.outside = F,legend.text.size = 0.7,legend.title.size = 0.7)
+
+
+```
+<br><br>
+<br><br>
+
+```{r align_fun, echo=F, results='hide', message=F, warning=F}
+# # Group data by country and ADD the numbers (we loose the information by State, City)
+# covid19_dataset %>% group_by(Country.Region,Date) %>% 
+#                     summarise( Cases = sum(Cases), Deaths = sum(Deaths),Recovered = sum(Recovered) ) -> covid19_countries
+# without Recovered
+covid19_dataset %>% group_by(Country.Region,Date) %>% 
+                     summarise( Cases = sum(Cases), Deaths = sum(Deaths)) -> covid19_countries
+
+
+# rename the variable for the country's name (for compatibility with the World dataset)
+names(covid19_countries)[1] = 'name'
+# Fix the names (for compatibility with the World dataset)
+covid19_countries$name%>% str_replace("US","United States") %>% str_replace("Korea, South","Korea") -> covid19_countries$name
+
+# Join the COVID19 data with World data for normalization by country's population 
+left_join(covid19_countries, world_moll %>% select(name,pop_est,region_wb),by='name') -> covid19_countries
+
+# Normalize Cases and Deaths by million inhabitants
+covid19_countries %>% mutate(Cases_pm = Cases / (pop_est/10^6) ) -> covid19_countries
+covid19_countries %>% mutate(Death_pm = Deaths / (pop_est/10^6) ) -> covid19_countries
+
+
+alignData<-function(covid19_countries, by='Cases', since=100, plot_countries  = c()){
+  covid19_countries %>% group_by(name) %>% filter(name %in% plot_countries) -> x
+    if(by=='Cases_pm'){
+        x %>% filter(Cases_pm >=since) %>% top_n(1,-Cases_pm) %>% group_by(name) %>% top_n(1,Date) -> Dates_of_1Casepm
+    }else if(by=='Deaths'){
+        x %>% filter(Deaths >=since) %>% top_n(1,-Deaths) %>% group_by(name) %>% top_n(1,Date) -> Dates_of_1Casepm
+    }else if(by =="Cases"){
+      x %>% filter(Cases >=since) %>% top_n(1,-Cases) %>% group_by(name) %>% top_n(1,Date) -> Dates_of_1Casepm
+    }
+
+    aligned_data = covid19_countries
+
+    aligned_data[,"Diff"] <- NA
+    for(i in 1:dim( Dates_of_1Casepm )[1] ){
+       aligned_data[aligned_data$name==Dates_of_1Casepm$name[i],]$Diff =  aligned_data$Date[aligned_data$name==Dates_of_1Casepm$name[i]] - Dates_of_1Casepm$Date[i]   
+    }
+
+    if(by=='Cases_pm'){
+        return(aligned_data %>%  filter(name %in% plot_countries) %>% filter(Cases_pm >=since))
+    }else if(by=='Deaths'){
+        return(aligned_data %>%  filter(name %in% plot_countries) %>% filter(Deaths >since))
+    }else if(by=='Cases'){
+        return(aligned_data %>%  filter(name %in% plot_countries) %>% filter(Cases >since))
+    }
+}
+
+
+```
+
+
+```{r theme_def, echo=F, results='hide', message=F, warning=F}
+
+#let's build a theme
+ my_theme<-theme_bw() + theme(text = element_text(size=20)) + 
+    theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_line(color = "gray50", size = 0.5),
+        panel.grid.major.x = element_blank(),
+        panel.background = element_blank(),
+        line = element_blank(),
+        panel.border = element_blank()) + 
+        theme(text = element_text(size = 20),
+        legend.title = element_blank(), 
+        legend.position = 'top',
+        plot.title = element_text(hjust = -0.15,
+                                  vjust = 2.12,
+                                  colour = "black",
+                                  size =14,face='bold')) + theme(legend.text = element_text(size=12))
+
+```
+
+
+
+## Fig 2. Cases per million habitants for countries with more than 1k cases 
+After filtering for countries with at least 1000 cases, we can plot the data relative to the day when different countries passed the 1 COVID-19 case per million habitants. 
+
+
+```{r prep_data ,echo=F, results='hide', message=F, warning=F}
+# Filter for countries with at least 1000 cases 
+
+static_data %>% filter(Cases >=1000) %>% pull(name) -> plot_countries
+static_data %>% filter(Deaths >=20) %>% pull(name) -> plot_countries_deaths
+
+
+# Align relative to the day of the 1 case p/million 
+aligned_test = alignData(covid19_countries, by="Cases_pm",since = 1,plot_countries = plot_countries)
+aligned_deaths = alignData(covid19_countries, by ="Deaths",since = 10, plot_countries = plot_countries_deaths)
+```
+
+```{r Fig2, echo=F, results='hide', message=F, warning=F,fig.height = 8, fig.width = 8 }
+colorCount = length(unique(world_moll$region_wb))
+getPalette = colorRampPalette(brewer.pal(8, "Accent"))
+colors = getPalette(colorCount)
+colors = colors[c(2,1,3,6,5,4,7,8)]
+
+
+# for color purposes 
+aligned_test$region_wb <- factor(aligned_test$region_wb, levels = c('Europe & Central Asia','East Asia & Pacific','Latin America & Caribbean','North America','Middle East & North Africa') )
+
+aligned_test %>% ggplot(aes(x =Diff,y = Cases_pm,color=region_wb,group=name)) + 
+    geom_path(alpha = 0.6) + geom_point(size = 1)  + 
+    geom_text_repel(data =aligned_test %>% filter(Date == last(Date)), 
+                    aes(label = unique(aligned_test$name)), 
+                    nudge_x =2, 
+                    xlim = c(max(aligned_test$Diff[aligned_test$name=='Korea']) + 7,NA) , 
+                    hjust = 0, direction ='y',segment.size = 0.1, 
+                    segment.colour = 'gray50',size = 4)  + 
+    xlim(0,max(aligned_test$Diff)+4)  + 
+    scale_y_continuous(trans = 'log10',name = "Cases per million habitants") + 
+    scale_color_manual(values= colors) + 
+    guides(col = guide_legend(nrow = 2)) + 
+    xlab("Days since 1 case p million") + ggtitle("COVID19 Cases per million habitants\n") + 
+  my_theme-> p_confirmed  
+    p_confirmed_1 = add_sub(p_confirmed,"Data: 2019 Novel Coronavirus Visual Dashboard; John Hopkins University CSSE",
+                x = -0.07,
+                hjust = 0,
+                fontface = "plain",
+                size= 10) 
+    ggdraw(p_confirmed_1)
+
+```
+
+
+
+<br><br><br><br>
+
+## Fig 3. Deaths since day of 10th death 
+
+
+```{r Fig3, echo=F, results='hide', message=F, warning=F,fig.height = 8, fig.width = 8 }
+
+
+# for color purposes 
+aligned_deaths$region_wb <- factor(aligned_deaths$region_wb, levels = c('Europe & Central Asia','East Asia & Pacific','Latin America & Caribbean','North America','Middle East & North Africa') )
+
+
+aligned_deaths %>% ggplot(aes(x =Diff,y = Deaths,color=region_wb,group=name)) + 
+    geom_path(alpha = 0.6) + geom_point(size = 1)  + 
+    geom_text_repel(data =aligned_deaths %>% filter(Date == last(Date)), 
+                    aes(label = unique(aligned_deaths$name)), 
+                    nudge_x =2, 
+                    xlim = c(max(aligned_deaths$Diff[aligned_deaths$name=='Korea']) + 7,NA) , 
+                    hjust = 0, direction ='y',segment.size = 0.1, 
+                    segment.colour = 'gray50',size = 4)  + 
+    xlim(0,max(aligned_deaths$Diff)+4)  + 
+    scale_y_continuous(trans = 'log10',name = "Number of deaths") + 
+    annotation_logticks(sides = 'l') +
+    scale_color_manual(values= colors) + 
+    guides(col = guide_legend(nrow = 2)) + 
+    xlab("Days since 10th death") + ggtitle("Deaths by COVID19\n") + 
+  my_theme-> p_deaths  
+    p_deaths_1 = add_sub(p_deaths,"Data: 2019 Novel Coronavirus Visual Dashboard; John Hopkins University CSSE",
+                x = -0.07,
+                hjust = 0,
+                fontface = "plain",
+                size= 10) 
+    ggdraw(p_deaths_1)
+
+```
+
+
+<br><br><br><br>
+
+### Interactive versions
+
+<br><br>
+
+```{r Fig2A, echo=F, message=F, warning=F,fig.height = 6, fig.width = 8 }
+
+ggplotly(p_confirmed + xlim(0,40))
+
+```
+
+<br><br>
+```{r Fig3A, echo=F, message=F, warning=F,fig.height = 6, fig.width = 8 }
+
+ggplotly(p_deaths + xlim(0,40))
+
+```
+
+
+
+<br><br>
+
+## Fig 4. Death vs Confirmed cases per million habitants
+<br><br>
+```{r Fig4, echo=F, results='hide', message=F, warning=F,fig.height = 8, fig.width = 8 }
+
+covid19_countries %>% filter(Deaths >2, Cases>300) %>% filter(!is.na(region_wb))->aligned_scatter
+aligned_scatter$region_wb <- factor(aligned_scatter$region_wb, levels = c('Europe & Central Asia','East Asia & Pacific','Latin America & Caribbean','North America','Middle East & North Africa','South Asia') )
+
+aligned_scatter %>% filter(Date ==last(Date)) %>% ggplot(aes(x =Cases_pm, y = Death_pm)) +  
+    geom_point(aes(color = region_wb),shape = 21, fill ='white',size = 3,stroke = 1.5) + 
+    scale_color_manual(values = colors) + 
+    scale_y_continuous(trans = 'log10',name = "Deaths per million habitants",labels=scales::comma) + 
+    scale_x_continuous(trans = 'log10',name = "Confirmed cases per million habitants",labels=scales::comma) + 
+    annotation_logticks(sides = 'lb') +
+    geom_smooth(method ='lm',formula = y ~x,se  =F,color='salmon3') +
+    geom_text_repel(data = aligned_scatter %>% filter(Date==last(Date)),
+                    aes(label = unique(aligned_scatter$name)), 
+                    segment.size =0.1) + 
+    ggtitle(paste("COVID19 confirmed cases and deaths, ",format(Sys.Date(),'%b/%d'),sep="") )+ 
+    my_theme
+  
+    
+        
+```
+    
+    
+<br><br>
+
+## Fig 5. Deaths per million habitants since the 100th case was detected
+
+<br><br>
+
+
+```{r Fig5, echo=F, results='hide', message=F, warning=F,fig.height = 8, fig.width = 8}
+
+static_data %>% filter(Cases >=1000) %>% pull(name) -> plot_countries_1000case
+
+
+# Align relative to the day of the 1 case p/million 
+aligned_300_case = alignData(covid19_countries, by="Cases",since = 100,plot_countries = plot_countries_1000case)
+
+aligned_300_case %>% filter(!is.na(region_wb)) -> aligned_300_case
+aligned_300_case$region_wb <- factor(aligned_300_case$region_wb, levels = c('Europe & Central Asia','East Asia & Pacific','Latin America & Caribbean','North America','Middle East & North Africa','South Asia') )
+
+
+
+aligned_300_case  %>% filter(Date ==last(Date)) %>% ggplot(aes(x=Diff,y = Death_pm)) + 
+ geom_point(aes(color = region_wb),shape = 21, fill ='white',size = 3,stroke = 1.5) + 
+    scale_color_manual(values = colors) + 
+    scale_y_continuous(trans = 'log10',name = "Deaths per million habitants",labels=scales::comma) + 
+    scale_x_continuous(trans = 'log10',name = "Days since the 100th confirmed case",labels=scales::comma) + 
+    annotation_logticks(sides = 'lb') +
+  guides(col = guide_legend(nrow = 2)) + 
+    geom_text_repel(data = aligned_300_case %>% filter(Date==last(Date)),
+                    aes(label = unique(aligned_300_case$name)), 
+                    segment.size =0.1) + 
+    ggtitle(paste("COVID19 deaths since day of 100th confirmed case, ",format(Sys.Date(),'%b/%d'),sep="") )+ my_theme
+
+
+```
