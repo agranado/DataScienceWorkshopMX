@@ -29,7 +29,7 @@ intMEMOIR is a digital, image-readable lineage recording system developed in the
   <img src = "images/intMEMOIR_1A.png" width = 400, align = "right"> 
 
 
-The intMEMOIR recording system relies on the activity of viral integrases to perform irreversible edits on DNA arrays that can be read out using imaging. For details on the experimental methods see [Chow et al 2020](https://www.nature.com/articles/nature20777). A mutation by the Bxb1 integrase can  MEMOIR system enables 3 different states for each recording unit. 
+The intMEMOIR recording system relies on the activity of viral integrases to perform irreversible edits on DNA arrays that can be read out using imaging. For details on the experimental methods see [Chow et al 2020](https://www.biorxiv.org/content/10.1101/2020.02.21.958678v1.full). A mutation by the Bxb1 integrase can  MEMOIR system enables 3 different states for each recording unit. 
 
 <br>
 The experimental data comprises lineage recording on mouse stem cells that have been engineering to carry a copy of a 10 unit intMEMOIR array (intMEM1 cell line). At the start of the experiment, all units in the array are on state “1” (unedited) and, as cells divice, stochastic recording can edit units into a either: “0” (deletion) or “2” (reversed). Each recording event is irreversible, therefore, the information recorded by intMEMOIR is not lost upon continued recording. 
