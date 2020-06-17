@@ -2,7 +2,7 @@ name: "CdC2019"
 output_dir: "."
 output:
   html_document:
-    theme: yeti    
+    theme: yeti
 
 navbar:
   right:
@@ -13,6 +13,8 @@ navbar:
       menu:
         - text: "DREAM challenge"
           href: DREAM.html
+        - text: "intMEMOIR"
+          href: intMEMOIR.html
     - text: "CdC2019"
       href: CdC2019.html
     - text: "Workshop"
