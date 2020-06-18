@@ -16,11 +16,17 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+![](images/main_banner_cactus.png) 
+
 
 ## Summary
 
 I am postdoctoral scholar at the California Institute of Technology working at Michael Elowitz' laboratory. My main projects relate to single-cell RNA sequencing data analysis at the level of signaling pathways in developmental contexts. 
 In this website I collect data related projects, academic work and photography and other non-academic projects. 
+
+---
+
+<br><br>
 
 ## Latest projects 
 
