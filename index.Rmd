@@ -28,19 +28,32 @@ In this website I collect data related projects, academic work and photography a
 
 <br><br>
 
-# Latest posts
+# **Latest posts**
 
-***
+
 
 ## *Making an interactive 3D UMAP plot* 
 
+***
+
 [![3D_UMAP | 100x100](images/UMAP_plotly.png)](https://agranado.github.io/DataScienceWorkshopMX/UMAP_3d.html)
 
+<br><br>
 
+## *EDA and visualization of COVID19 pandemia across the world* 
 
 ***
 
+[![COVID | 100x100](images/COVID_map.png)](https://agranado.github.io/DataScienceWorkshopMX/COVID19_analysis.html)
+
+
+
+
+
 ## *Clubes de Ciencia, Mexico.* 
+
+***
+
 A hands-on Data Science intro for undergrads using Single-Cell RNA seq data. 
 
 [![Students from ITESM university. Chihuahua, Mexico](images/clubes2.JPG)](https://agranado.github.io/DataScienceWorkshopMX/CdC2019.html)
