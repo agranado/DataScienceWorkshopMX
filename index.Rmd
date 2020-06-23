@@ -34,7 +34,7 @@ In this website I collect data related projects, academic work and photography a
 
 ## *Making an interactive 3D UMAP plot* 
 
-[![3D_UMAP](images/UMAP_plotly.png)](https://agranado.github.io/DataScienceWorkshopMX/UMAP_3d.html)
+[![3D_UMAP | 100x100](images/UMAP_plotly.png)](https://agranado.github.io/DataScienceWorkshopMX/UMAP_3d.html)
 
 
 

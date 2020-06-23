@@ -10,6 +10,7 @@ knit: (function(input_file, encoding) {
 author: "Alejandro A Granados"
 date: "13/04/2020"
 output: html_document
+
 ---
 
 ```{r setup, include=FALSE}

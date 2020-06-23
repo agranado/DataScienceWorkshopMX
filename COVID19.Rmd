@@ -140,7 +140,7 @@ label_countries %>% str_replace(pattern = "United Kingdom","UK") %>% str_replace
 
 
 ```{r echo=F, message = F, warning = F, fig1, fig.height = 7, fig.width = 10}
-  plot_data %>% ggplot(aes(x =Date,y = Cases,color=Country.Region)) + geom_path() + geom_point() + scale_x_date(date_labels = "%b/%d")  + theme_economist(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_data %>% filter(Date == last(Date)), aes(label = label_countries), nudge_x =2,xlim = c(last(plot_data$Date),NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(as.Date('2020-02-14'), last(plot_data$Date) + 4 )
+  plot_data %>% ggplot(aes(x =Date,y = Cases,color=Country.Region)) + geom_path() + geom_point() + scale_x_date(date_labels = "%b/%d")  + theme_economist(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_data %>% filter(Date == last(Date)), aes(label = label_countries), nudge_x =2,xlim = c(last(plot_data$Date),NA), hjust = 0, direction ='y',segment.size = 0.1, segment.colour = 'gray50',size = 4)  + xlim(as.Date('2020-02-14'), last(plot_data$Date) + 4 )
 
 ```
 
@@ -163,7 +163,7 @@ for(i in 1:dim( plot_data_since_100 )[1] ){
 }
 
 
-plot_data %>% ggplot(aes(x =Diff,y = Cases,color=Country.Region)) + geom_path() + geom_point() + theme_economist(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_data %>% filter(Date == last(Date)), aes(label = label_countries), nudge_x =2,xlim = c(max(plot_data$Diff),NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(0,max(plot_data$Diff)+4)
+plot_data %>% ggplot(aes(x =Diff,y = Cases,color=Country.Region)) + geom_path() + geom_point() + theme_economist(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_data %>% filter(Date == last(Date)), aes(label = label_countries), nudge_x =2,xlim = c(max(plot_data$Diff),NA), hjust = 0, direction ='y',segment.size = 0.1, segment.colour = 'gray50',size = 4)  + xlim(0,max(plot_data$Diff)+4)
 
 
 ```
@@ -233,7 +233,7 @@ plot_deaths %>% ggplot(aes(x =Date,y = Cases,color=Country.Region)) + geom_path(
 ## Total deaths per day since 10th death
 
 
-```{r echo=F, message = F, warning = F, fig5, fig.height = 11, fig.width = 10 }
+```{r echo=F, message = F, warning = F, fig5, fig.height = 7, fig.width = 10 }
 
 # find the date then substract to normalize the axis 
 plot_deaths %>% group_by(Country.Region) %>% filter(Cases >10) %>% top_n(1,-Cases) -> plot_deaths_since_10
@@ -245,9 +245,11 @@ for(i in 1:dim( plot_deaths_since_10 )[1] ){
 }
 
 
-plot_deaths %>% ggplot(aes(x =Diff,y = Cases,color=Country.Region)) + geom_path() + geom_point() + theme_wsj(base_size = 16)  +  guides(color = FALSE)   + geom_text_repel(data =plot_deaths %>% filter(Date == last(Date)), aes(label = label_countries_deaths), nudge_x =2,xlim = c(max(plot_deaths$Diff[plot_deaths$Country.Region=='Iran']) + 7,NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(0,max(plot_deaths$Diff)+4)
-
-
+plot_deaths %>% filter(Cases>10) %>% 
+  ggplot(aes(x =Diff,y = Cases,color=Country.Region)) + geom_path() + geom_point() + theme_wsj(base_size = 16)  +  guides(color = FALSE)   + 
+    geom_text_repel(data =plot_deaths %>% filter(Date == last(Date)), 
+                    aes(label = label_countries_deaths), nudge_x =2,
+                    xlim = c(max(plot_deaths$Diff[plot_deaths$Country.Region=='Iran']) + 7,NA), hjust = 0, direction ='y',segment.size = 0.2, segment.colour = 'gray50',size = 4)  + xlim(0,max(plot_deaths$Diff)+4) + ylab("Number of deaths (log)") + xlab("Days since 10th death") + theme(axis.title=element_text(size=20))    + scale_y_continuous(trans="log10")+ annotation_logticks(sides = 'l')
 
 
 ```
