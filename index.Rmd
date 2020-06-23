@@ -32,6 +32,14 @@ In this website I collect data related projects, academic work and photography a
 
 ***
 
+## *Making an interactive 3D UMAP plot* 
+
+[![3D_UMAP](images/UMAP_plotly.png)](https://agranado.github.io/DataScienceWorkshopMX/UMAP_3d.html)
+
+
+
+***
+
 ## *Clubes de Ciencia, Mexico.* 
 A hands-on Data Science intro for undergrads using Single-Cell RNA seq data. 
 
