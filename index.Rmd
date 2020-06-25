@@ -36,7 +36,7 @@ In this website I collect data related projects, academic work and photography a
 
 ***
 
-[![3D_UMAP | 100x100](images/UMAP_plotly.png)](https://agranado.github.io/DataScienceWorkshopMX/UMAP_3d.html)
+[![3D_UMAP | 100x100](images/UMAP_plotly.png)](https://agranado.github.io/UMAP_3d.html)
 
 <br><br>
 
@@ -44,7 +44,7 @@ In this website I collect data related projects, academic work and photography a
 
 ***
 
-[![COVID | 100x100](images/COVID_map.png)](https://agranado.github.io/DataScienceWorkshopMX/COVID19_analysis.html)
+[![COVID | 100x100](images/COVID_map.png)](https://agranado.github.io/COVID19_analysis.html)
 
 
 
@@ -56,6 +56,6 @@ In this website I collect data related projects, academic work and photography a
 
 A hands-on Data Science intro for undergrads using Single-Cell RNA seq data. 
 
-[![Students from ITESM university. Chihuahua, Mexico](images/clubes2.JPG)](https://agranado.github.io/DataScienceWorkshopMX/CdC2019.html)
+[![Students from ITESM university. Chihuahua, Mexico](images/clubes2.JPG)](https://agranado.github.io/CdC2019.html)
 
 
