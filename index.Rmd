@@ -30,6 +30,13 @@ In this website I collect data related projects, academic work and photography a
 
 # **Latest posts**
 
+## *Retrieving stock prices data from Yahoo Finance* 
+
+***
+
+[![Finance | 100x100](images/techStocks.png)](https://agranado.github.io/FinanceData.html)
+
+<br><br>
 
 
 ## *Making an interactive 3D UMAP plot* 

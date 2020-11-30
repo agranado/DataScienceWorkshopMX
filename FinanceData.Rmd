@@ -55,7 +55,7 @@ Here we retrieve data on a few of the main tech stocks from the last years. All 
 
 ```{r plot_stocks, echo=T, message=F, warning=F}
 
-stock.prices[[2]] %>% ggplot(aes(x = ref.date, y = price.close, color = ticker)) + geom_line() + 	theme(text = element_text(size=20))
+stock.prices[[2]] %>% ggplot(aes(x = ref.date, y = price.close, color = ticker)) + geom_line() +  theme_classic() + theme(text = element_text(size=20))
 
 
 ```
