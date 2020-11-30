@@ -1,0 +1,71 @@
+---
+title: "Retrieving stock market prices from Yahoo Finance"
+
+knit: (function(input_file, encoding) {
+  out_dir <- '.';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'FinanceData.html'))})
+
+author: "Alejandro A Granados"
+date: "27/11/2020"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+## Automated collection of stock prices time series.
+
+<br>
+The stock market is a complex systems that has multiple attributes of interest for data science: dynamics, correlations and stochastic behaviour. Traditionally, forecasting of stock prices requires the calculation of summary statistics such as MACD, RSI, or moving averages. With knowledge from trading, we can use multiple indicators to estimate what the price action will be. New methodologies, however, allow for automated forecasting from stock price data. For example, Long short-term memory (LSTM) neural networks enable forecasting of time series using deep learning. The first step, however, is to collect data, a lot of data. 
+
+<br>
+
+Vantage Alpha is a popular library for downloading stock prices data, however I found tha it is rather unreliable since it often imposes limits on the amout of data one can download at a time. I recently came across with BatchGetSymbols, an R library that enables automated retrieval of stock market data in fast, reliable and efficient way. 
+  
+
+
+```{r hidden_process, echo=T, message=F, warning=F}
+
+#install.packages("BatchGetSymbols")
+library(BatchGetSymbols)
+library(ggplot2)
+
+first.date = '2018-01-01'
+last.date <- Sys.Date()
+freq.data <- 'daily'
+
+
+# Use Yahoo tickers
+symbols = c('MSFT', 'GOOGL','NFLX','NVDA','FB','SHOP','AMZN','ZM','SQ','SE','SPOT')
+
+
+stock.prices =BatchGetSymbols(symbols, first.date = first.date, last.date = last.date, freq.data = freq.data)
+# First element in the list is meta data of the download 
+
+```
+
+Here we retrieve data on a few of the main tech stocks from the last years. All we need is the list of tickers and the date range:  
+
+```{r plot_stocks, echo=T, message=F, warning=F}
+
+stock.prices[[2]] %>% ggplot(aes(x = ref.date, y = price.close, color = ticker)) + geom_line() + 	theme(text = element_text(size=20))
+
+
+```
+
+
+
+Here is the meta data for the download: 
+```{r stock_metadata, echo=T, message=F, warning=F}
+
+stock.prices[[1]]
+
+
+```
